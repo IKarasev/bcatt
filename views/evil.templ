@@ -1,0 +1,430 @@
+package views
+
+import "strings"
+import "fmt"
+
+templ TabEvil() {
+	<div class="flex flex-col w-full h-full border-t-2 border-t-red-300 px-4">
+		<div class="flex flex-row w-full gap-4 pt-4 pb-2 px-4 items-center">
+			<div class="flex">
+				<div class="tooltip tooltip-bottom" data-tip="Load evil block">
+					<button
+						hx-get="/evil/load"
+						hx-target="#EvilBlockWrapper"
+						hx-swap="innerHTML"
+						class="btn btn-sm btn-primary"
+					>Load</button>
+				</div>
+			</div>
+			<div class="flex">
+				<div class="tooltip tooltip-bottom" data-tip="Steal block candidate">
+					<button
+						hx-get="/evil/steal"
+						hx-target="#EvilBlockWrapper"
+						hx-swap="innerHTML"
+						class="btn btn-sm"
+					>Steal</button>
+				</div>
+			</div>
+			<div class="flex">
+				<div class="tooltip tooltip-bottom" data-tip="Create new evil block">
+					<button
+						hx-get="/evil/create"
+						hx-target="#EvilBlockWrapper"
+						hx-swap="innerHTML"
+						class="btn btn-sm"
+					>Create</button>
+				</div>
+			</div>
+			<div class="flex">
+				<div class="tooltip tooltip-bottom" data-tip="Mine current evil block">
+					<button
+						hx-get="/evil/mine"
+						hx-target="#EvilBlockWrapper"
+						hx-swap="innerHTML"
+						class="btn btn-sm bg-stone-500 border-stone-500"
+					>Mine</button>
+				</div>
+			</div>
+			<div class="flex">
+				<div class="tooltip tooltip-bottom" data-tip="Inject current evil block into main node">
+					<button
+						hx-get="/evil/inject"
+						hx-target="#EvilMenuBtnResult"
+						hx-swap="innerHTML"
+						class="btn btn-sm bg-red-500 border-red-500"
+					>Inject</button>
+				</div>
+			</div>
+			<div class="flex">
+				<div class="tooltip tooltip-bottom" data-tip="Sends evil block from main node to other nodes">
+					<button
+						hx-get="/evil/send"
+						hx-target="#EvilMenuBtnResult"
+						hx-swap="innerHTML"
+						class="btn btn-sm bg-amber-600 border-amber-600"
+					>Send</button>
+				</div>
+			</div>
+			<div id="EvilMenuBtnResult" class="flex"></div>
+		</div>
+		<div id="EvilBlockWrapper" class="flex flex-row w-full h-full overflow-y-auto"></div>
+	</div>
+}
+
+templ EvilBlock(b BlockInfoSmallItem, trs []BlockTransactionItem) {
+	<div class="flex flex-col w-full">
+		<div class="divider divider-start font-semibold">HEADER</div>
+		<div class="flex flex-col w-full gap-2 px-4 max-w-5xl">
+			<!-- Height row -->
+			@EvilFormHeight(b.Height)
+			<!-- Time row -->
+			@EvilFormTime(b.Time)
+			<!-- Root row -->
+			@EvilFormHashLong("Root", "root", b.Root)
+			<!-- Prev row -->
+			@EvilFormHashLong("Prev", "prev", b.Prev)
+			<!-- Hash row -->
+			@EvilFormHashLong("Hash", "hash", b.Hash)
+			<!-- Nonce row -->
+			@EvilFormNonce(b.Nonce)
+		</div>
+		<div class="divider divider-start font-semibold">BODY</div>
+		<div class="flex flex-col w-full gap-2 px-4 max-w-5xl">
+			@EvilFormCoinbase(b.Coinbase)
+			for _, tr := range trs {
+				@EvilFormTransaction(tr)
+			}
+			@EvilNewTrButton()
+		</div>
+	</div>
+}
+
+templ EvilFormHeight(h string) {
+	<form
+		hx-post="/evil/set/height"
+		hx-target="#EvilHeightResult"
+		hx-swap="innerHTML"
+		class="flex flex-row gap-2 items-center"
+		onkeydown="if(event.keyCode === 13) {return false;}"
+	>
+		<button class="btn btn-xs">
+			@ForwardIcon()
+		</button>
+		<label class="flex flex-row gap-2">
+			<span class="w-14">Height</span>
+			<input name="height" class="input input-sm" type="number" placeholder="0" value={ h }/>
+		</label>
+		<div id="EvilHeightResult"></div>
+	</form>
+}
+
+templ EvilFormTime(t string) {
+	{{ bTime := strings.Split(t, " ") }}
+	<form
+		hx-post="/evil/set/time"
+		hx-target="#EvilTimeResult"
+		class="flex flex-row gap-2 items-center"
+		onkeydown="if(event.keyCode === 13) {return false;}"
+	>
+		<button class="btn btn-xs">
+			@ForwardIcon()
+		</button>
+		<label class="flex flex-row gap-2">
+			<span class="w-14">Time</span>
+			<input name="date" type="date" class="input input-sm" step="1" value={ bTime[0] }/>
+			<input name="time" type="time" class="input input-sm" step="1" value={ bTime[1] }/>
+		</label>
+		<div id="EvilTimeResult"></div>
+	</form>
+}
+
+templ EvilFormHashLong(n, t, v string) {
+	<form
+		hx-post="/evil/set/hash"
+		hx-target={ fmt.Sprintf("#Evil%sResult", n) }
+		class="flex flex-row gap-2 items-center"
+		onkeydown="if(event.keyCode === 13) {return false;}"
+	>
+		<button class="btn btn-xs">
+			@ForwardIcon()
+		</button>
+		<label class="flex flex-row gap-2 w-full">
+			<span class="w-14">{ n }</span>
+			<input
+				name="hash"
+				type="text"
+				class="input input-sm w-full"
+				value={ v }
+				placeholder="0000000000000000000000000000000000000000000000000000000000000000"
+			/>
+		</label>
+		<input name="type" type="hidden" class="hidden" value={ t }/>
+		<div id={ fmt.Sprintf("Evil%sResult", n) }></div>
+	</form>
+}
+
+templ EvilFormNonce(n string) {
+	<form
+		hx-post="/evil/set/nonce"
+		hx-target="#EvilNonceResult"
+		class="flex flex-row gap-2 items-center"
+		onkeydown="if(event.keyCode === 13) {return false;}"
+	>
+		<button class="btn btn-xs">
+			@ForwardIcon()
+		</button>
+		<label class="flex flex-row gap-2 w-full">
+			<span class="w-14">Nonce</span>
+			<input
+				name="value"
+				type="number"
+				class="input input-sm w-full"
+				value={ n }
+				placeholder="12345"
+			/>
+		</label>
+		<input name="field" type="hidden" class="hidden" value="nonce"/>
+		<div id="EvilNonceResult"></div>
+	</form>
+}
+
+templ EvilFormCoinbase(c string) {
+	<form
+		class="flex flex-row gap-2 items-center"
+		onkeydown="if(event.keyCode === 13) {return false;}"
+	>
+		<button
+			hx-post="/evil/set/coinbase"
+			hx-target="#EvilCoinbaseResult"
+			class="btn btn-xs"
+		>
+			@ForwardIcon()
+		</button>
+		<label class="flex flex-row gap-2 items-center">
+			<span class="w-16">Coinbase</span>
+			<input
+				name="value"
+				type="number"
+				class="input input-sm w-full"
+				value={ c }
+				placeholder="12345"
+			/>
+		</label>
+		<input name="field" type="hidden" class="hidden" value="coinbase"/>
+		<div id="EvilCoinbaseResult"></div>
+	</form>
+}
+
+templ EvilFormTransaction(tr BlockTransactionItem) {
+	{{
+	trDivId := fmt.Sprintf("EvilTrContainer%s", tr.Id)
+	trId := EvilInputIdTr(tr.Id)
+	signId := fmt.Sprintf("EvilSign%sResult", tr.Id)
+	pkId := fmt.Sprintf("EvilPk%sResult", tr.Id)
+	}}
+	<div
+		id={ trDivId }
+		class="flex flex-col h-full p-2 gap-2 rounded-md border-2 border-zinc-200"
+	>
+		<form class="flex flex-row gap-2 w-full justify-between pb-2 items-start">
+			<span class="font-semibold text-zinc-600">{ fmt.Sprintf("Transaction[%s]", tr.Id) }</span>
+			<input
+				id={ trId }
+				name="tid"
+				type="hidden"
+				class="hidden"
+				value={ tr.Id }
+			/>
+			<div class="tooltip tooltip-bottom" data-tip="Delete transaction">
+				<button
+					hx-post="/evil/del/tr"
+					hx-target={ "#" + trDivId }
+					hx-swap="outerHTML"
+					class="btn btn-xs btn-error"
+				>
+					@DeleteIcon()
+				</button>
+			</div>
+		</form>
+		<form
+			hx-post="/evil/set/tr/sign"
+			hx-include={ "#" + trId }
+			hx-target={ "#" + signId }
+			class="flex flex-row gap-2 items-center"
+			onkeydown="if(event.keyCode === 13) {return false;}"
+		>
+			<button class="btn btn-xs">
+				@ForwardIcon()
+			</button>
+			<label class="flex flex-row gap-2 w-full items-center">
+				<span class="w-14">Sign</span>
+				<textarea
+					name="value"
+					class="textarea textarea-sm font-mono leading-none w-full"
+				>{ tr.Sign }</textarea>
+			</label>
+			<input name="type" value="sign" type="hidden" class="hidden"/>
+			<div id={ signId }></div>
+		</form>
+		<form
+			hx-post="/evil/set/tr/pk"
+			hx-include={ "#" + trId }
+			hx-target={ "#" + pkId }
+			class="flex flex-row gap-2 items-center"
+			onkeydown="if(event.keyCode === 13) {return false;}"
+		>
+			<button class="btn btn-xs">
+				@ForwardIcon()
+			</button>
+			<label class="flex flex-row gap-2 w-full items-center">
+				<span class="w-14">Pk</span>
+				<textarea
+					name="value"
+					class="textarea textarea-sm font-mono leading-none w-full"
+				>{ tr.Pk }</textarea>
+			</label>
+			<input name="type" value="pk" type="hidden" class="hidden"/>
+			<div id={ pkId }></div>
+		</form>
+		<div class="divider divider-start font-semibold text-sm text-zinc-600">Input Utxo</div>
+		for _, u := range tr.InputUtxo {
+			@EvilFormUtxo(tr.Id, "input", u)
+		}
+		@EvilTrUtxoAdd(tr.Id, "input")
+		<div class="divider divider-start font-semibold text-sm text-zinc-600">Output Utxo</div>
+		for _, u := range tr.OutputUtxo {
+			@EvilFormUtxo(tr.Id, "output", u)
+		}
+		@EvilTrUtxoAdd(tr.Id, "output")
+	</div>
+}
+
+templ EvilFormUtxo(tid string, t string, u UtxoItem) {
+	{{
+	trId := "#" + EvilInputIdTr(tid)
+	resultId := fmt.Sprintf("EvilResult%s%s%s", tid, t, u.Id)
+	formId := "UtxoForm" + u.Id
+	}}
+	<form
+		id={ formId }
+		onkeydown="if(event.keyCode === 13) {return false;}"
+		class="flex flex-row gap-2 items-center"
+	>
+		<button
+			hx-post="/evil/set/tr/utxo"
+			hx-trigger="click"
+			hx-include={ trId }
+			hx-target={ "#" + resultId }
+			class="btn btn-xs"
+		>
+			@ForwardIcon()
+		</button>
+		<input type="number" name="amount" class="input input-sm w-40" placeholder="Amount" value={ u.Amount }/>
+		<input type="text" name="addr" class="input input-sm w-full font-mono" placeholder="Wallet Id" value={ u.Addr }/>
+		<input name="type" type="hidden" class="hidden" value={ t }/>
+		<input name="uid" type="hidden" class="hidden" value={ u.Id }/>
+		<button
+			hx-post="/evil/del/utxo"
+			hx-trigger="click"
+			hx-include={ trId }
+			hx-target={ "#" + formId }
+			hx-swap="outerHTML"
+			class="btn btn-xs btn-error font-mono"
+		>x</button>
+		<div id={ resultId }></div>
+	</form>
+}
+
+templ EvilTrUtxoAdd(tid string, t string) {
+	{{
+	formId := fmt.Sprintf("Tr%sFormAddUtxo%s", tid, t)
+	}}
+	<form
+		id={ formId }
+		onkeydown="if(event.keyCode === 13) {return false;}"
+		class="flex flex-row gap-2 items-center"
+	>
+		<button
+			hx-post="/evil/add/utxo"
+			hx-target={ "#" + formId }
+			hx-swap="outerHTML"
+			class="btn btn-success bg-green-300 btn-xs"
+		>
+			@AddIcon()
+		</button>
+		<input type="number" name="amount" class="input input-sm w-40" placeholder="Amount"/>
+		<input type="text" name="addr" class="input input-sm w-full font-mono" placeholder="Wallet Id"/>
+		<input name="type" type="hidden" class="hidden" value={ t }/>
+		<input name="tid" type="hidden" class="hidden" value={ tid }/>
+	</form>
+}
+
+templ EvilTrNewUtxo(tid, tp string, u UtxoItem) {
+	@EvilFormUtxo(tid, tp, u)
+	@EvilTrUtxoAdd(tid, tp)
+}
+
+templ EvilNewTr(tr BlockTransactionItem) {
+	@EvilFormTransaction(tr)
+	@EvilNewTrButton()
+}
+
+templ EvilNewTrButton() {
+	<button
+		hx-get="/evil/add/tr"
+		hx-swap="outerHTML"
+		class="btn btn-sm btn-success font-light w-fit"
+	>
+		Insert Transaction
+	</button>
+}
+
+templ EvilActionResult(ok bool) {
+	<div class="rc-fade-out">
+		if ok {
+			<svg fill="#16a34a" height="20" width="20" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512.018 512.018" xml:space="preserve">
+				<g>
+					<g>
+						<path d="M441.319,144.905c14.37-72.9-31.044-138.479-33.033-141.278c-1.963-2.79-5.419-4.181-8.755-3.422    c-3.337,0.717-5.922,3.354-6.588,6.707c-4.787,24.482-14.063,48.657-27.511,71.996c-32.572-17.655-69.845-27.691-109.423-27.691    c-39.433,0-76.57,9.967-109.047,27.494c-13.38-23.279-22.622-47.394-27.401-71.799c-0.657-3.354-3.251-5.999-6.588-6.707    c-3.336-0.742-6.784,0.64-8.755,3.422c-1.971,2.79-47.172,68.053-33.143,140.732c-28.544,38.366-45.466,85.871-45.466,137.259    c0,127.044,103.356,230.4,230.4,230.4c127.036,0,230.4-103.356,230.4-230.4C486.409,230.469,469.632,183.177,441.319,144.905z     M103.075,109.492c-1.041,0.93-2.091,1.86-3.115,2.807c-2.082,1.92-4.147,3.874-6.161,5.871c-0.998,0.99-1.954,2.005-2.927,3.012    c-1.707,1.758-3.473,3.456-5.129,5.265c-2.918-38.972,11.605-74.957,22.17-95.403c5.606,19.132,13.73,37.982,24.269,56.303    c-0.947,0.606-1.835,1.28-2.765,1.903c-1.903,1.246-3.763,2.543-5.623,3.849C116.557,98.168,109.654,103.638,103.075,109.492z     M126.046,231.459c-3.115-3.541-2.773-8.934,0.768-12.049c11.981-10.547,27.315-15.846,43.264-14.788    c7.979,0.512,15.616,2.56,22.588,5.99c-2.031-4.71-4.89-9.224-8.474-13.295c-8.337-9.472-19.55-15.317-30.771-16.026    c-4.702-0.299-8.277-4.352-7.979-9.054c0.307-4.702,4.335-8.218,9.062-7.979c15.701,0.998,31.198,8.934,42.505,21.786    c11.307,12.843,17.22,29.218,16.213,44.911c-0.222,3.447-2.492,6.417-5.751,7.535c-0.905,0.307-1.843,0.461-2.765,0.461    c-2.406,0-4.753-1.024-6.4-2.893c-7.543-8.567-17.946-13.679-29.312-14.396c-11.418-0.845-22.34,3.029-30.908,10.564    C134.545,235.333,129.161,234.992,126.046,231.459z M365.79,354.16c-23.211,40.064-64.256,63.992-109.781,63.992    c-45.534,0-86.579-23.927-109.79-63.992c-2.364-4.079-0.964-9.301,3.106-11.656c4.096-2.381,9.301-0.973,11.665,3.106    c20.122,34.731,55.646,55.475,95.019,55.475c39.364,0,74.889-20.745,95.01-55.475c2.364-4.079,7.569-5.487,11.665-3.106    C366.763,344.858,368.154,350.081,365.79,354.16z M385.963,231.459c-3.115,3.533-8.508,3.874-12.041,0.768    c-8.567-7.543-19.533-11.383-30.908-10.564c-11.366,0.717-21.769,5.828-29.312,14.396c-1.647,1.869-3.994,2.893-6.4,2.893    c-0.93,0-1.86-0.154-2.765-0.461c-3.26-1.118-5.53-4.087-5.751-7.535c-0.998-15.693,4.907-32.068,16.213-44.911    c11.307-12.851,26.803-20.787,42.505-21.786c4.582-0.256,8.755,3.277,9.062,7.979c0.299,4.702-3.277,8.755-7.979,9.054    c-11.221,0.708-22.434,6.554-30.771,16.026c-3.584,4.07-6.443,8.585-8.474,13.295c6.972-3.43,14.609-5.478,22.588-5.99    c15.966-1.007,31.283,4.241,43.264,14.788C388.736,222.524,389.078,227.917,385.963,231.459z M426.727,126.951    c-2.048-2.27-4.233-4.403-6.366-6.588c-0.606-0.614-1.186-1.246-1.801-1.852c-2.133-2.133-4.318-4.198-6.536-6.238    c-0.888-0.819-1.784-1.63-2.688-2.432c-2.253-2.014-4.514-4.011-6.844-5.931c-0.102-0.085-0.213-0.162-0.316-0.247    c-4.557-3.746-9.276-7.287-14.131-10.684c-1.647-1.161-3.302-2.321-4.983-3.43c-0.973-0.649-1.886-1.348-2.867-1.971    c10.615-18.415,18.782-37.342,24.422-56.576C415.232,51.508,429.85,87.681,426.727,126.951z"></path>
+					</g>
+				</g>
+			</svg>
+		} else {
+			<svg
+				fill="#dc2626"
+				height="20"
+				width="20"
+				version="1.1"
+				id="Layer_1"
+				viewBox="0 0 512.018 512.018"
+				xml:space="preserve"
+				xmlns="http://www.w3.org/2000/svg"
+				xmlns:svg="http://www.w3.org/2000/svg"
+			>
+				<g transform="translate(0 -1)">
+					<g>
+						<g>
+							<path
+								d="m 349.876,171.684 c -7.014,0 -13.372,2.842 -17.997,7.424 l -0.179,0.179 c -4.582,4.625 -7.424,10.982 -7.424,17.997 0,14.114 11.486,25.6 25.6,25.6 14.114,0 25.6,-11.486 25.6,-25.6 0,-14.114 -11.486,-25.6 -25.6,-25.6 z m 0,34.134 c -4.71,0 -8.533,-3.823 -8.533,-8.533 0,-4.71 3.823,-8.533 8.533,-8.533 4.71,0 8.533,3.823 8.533,8.533 0,4.71 -3.823,8.533 -8.533,8.533 z"
+								style="display:inline"
+							></path>
+							<path
+								style="display:inline"
+								d="M 402.02163 1.027501 C 401.19926 0.96023543 400.36003 1.0152572 399.5303 1.2050072 C 396.1943 1.9220058 393.59956 4.5597498 392.94256 7.912743 C 388.14658 32.394694 378.87156 56.569572 365.4316 79.916524 C 332.85966 62.26056 295.57842 52.216801 256.0015 52.216801 C 216.57758 52.216801 179.43959 62.184553 146.95267 79.711517 C 133.57269 56.432563 124.33945 32.317694 119.56045 7.912743 C 118.90345 4.5587498 116.30972 1.9130058 112.97272 1.2050072 C 109.62772 0.4710087 106.18841 1.8456331 104.21741 4.6276275 C 102.24643 7.4176219 57.046027 72.679978 71.074999 145.35882 C 42.523055 183.72476 25.6009 231.23075 25.6009 282.61865 C 25.6009 409.66239 128.95776 513.018 256.0015 513.018 C 383.04524 513.018 486.40085 409.66239 486.40085 282.61865 C 486.40085 231.46975 469.62422 184.17703 441.31926 145.90509 C 455.68124 73.005246 410.2656 7.4266219 408.2856 4.6276275 C 406.80735 2.5351317 404.48876 1.2292974 402.02163 1.027501 z M 404.60922 32.00234 C 415.2242 52.508298 429.8515 88.680796 426.7275 127.95071 C 424.6715 125.68073 422.49428 123.54798 420.35228 121.36298 C 419.75528 120.74898 419.16696 120.11767 418.56096 119.51167 C 416.42798 117.37867 414.23448 115.31268 412.02448 113.2727 C 411.1365 112.4537 410.23289 111.65236 409.33689 110.84136 C 407.08389 108.82736 404.8229 106.8299 402.4929 104.9099 C 402.3909 104.8249 402.27964 104.74864 402.17664 104.66364 C 397.61964 100.91766 392.89314 97.376511 388.04614 93.979519 C 386.39114 92.818521 384.73445 91.658396 383.05347 90.549398 C 382.08947 89.9094 381.1676 89.201077 380.19462 88.578079 C 390.8016 70.172115 398.97724 51.236302 404.60922 32.00234 z M 107.90504 32.044841 C 113.52004 51.176803 121.63517 70.025857 132.18215 88.346821 C 131.23515 88.952819 130.3463 89.636638 129.4083 90.250638 C 127.5143 91.504634 125.6456 92.793525 123.7856 94.099523 C 116.55762 99.168513 109.65512 104.64662 103.07612 110.4926 C 102.02512 111.4226 100.98426 112.35195 99.952264 113.29895 C 97.870268 115.21895 95.812793 117.17342 93.790797 119.1704 C 92.800799 120.1604 91.845442 121.18376 90.864444 122.18176 C 89.157448 123.93976 87.391262 125.63795 85.744264 127.44695 C 82.81727 88.47502 97.349067 52.490801 107.90504 32.044841 z M 152.44536 130.82581 C 154.62886 130.82581 156.81382 131.65915 158.48182 133.32715 L 192.25676 167.10209 L 192.31676 167.16209 L 224.94791 199.79449 C 228.27589 203.13049 228.27589 208.52393 224.94791 211.85991 C 223.28391 213.52391 221.09918 214.36 218.9152 214.36 C 216.7302 214.36 214.54648 213.52391 212.88248 211.85991 L 204.20343 203.18211 C 201.30243 223.90107 183.63841 239.95215 162.13445 239.95215 C 138.60749 239.95115 119.46795 220.81136 119.46795 197.2844 C 119.46795 175.78044 135.51903 158.11642 156.23799 155.21542 L 146.4164 145.39383 C 143.0794 142.05683 143.0794 136.66315 146.4164 133.32715 C 148.0804 131.65915 150.26186 130.82581 152.44536 130.82581 z M 359.55764 130.82581 C 361.74101 130.82581 363.9226 131.65915 365.5866 133.32715 C 368.9236 136.66415 368.9236 142.05783 365.5866 145.39383 L 355.76501 155.21542 C 376.48397 158.11642 392.53505 175.78044 392.53505 197.2844 C 392.53405 220.81136 373.39326 239.9509 349.8673 239.9509 C 328.36334 239.9509 310.69932 223.89982 307.79832 203.18086 L 299.11177 211.86866 C 297.44777 213.53266 295.26305 214.36875 293.07905 214.36875 C 290.89407 214.36875 288.71034 213.53266 287.04634 211.86866 C 283.71834 208.53168 283.71834 203.13799 287.04634 199.80199 L 319.68624 167.16209 L 319.74624 167.10209 L 353.52118 133.32715 C 355.18968 131.65915 357.37427 130.82581 359.55764 130.82581 z M 256.01025 340.71319 C 333.12886 340.71319 369.16423 406.57676 369.16423 406.57676 A 9.5363503 9.5363503 0 0 1 365.33409 419.50721 A 9.5363503 9.5363503 0 0 1 352.40239 415.67833 C 352.40239 415.67833 322.33624 359.78511 256.01025 359.78511 C 189.57181 359.78511 162.32946 415.38457 162.32946 415.38457 A 9.5363503 9.5363503 0 0 1 149.53901 419.65972 A 9.5363503 9.5363503 0 0 1 145.26511 406.86927 C 145.26512 406.86927 178.7949 340.71319 256.01025 340.71319 z "
+							></path>
+							<path
+								d="M187.742,197.284c0-7.014-2.842-13.372-7.424-17.997l-0.179-0.179c-4.625-4.582-10.982-7.424-17.997-7.424     c-14.114,0-25.6,11.486-25.6,25.6s11.486,25.6,25.6,25.6C176.256,222.884,187.742,211.399,187.742,197.284z M153.609,197.284     c0-4.71,3.823-8.533,8.533-8.533c4.71,0,8.533,3.823,8.533,8.533s-3.823,8.533-8.533,8.533     C157.432,205.818,153.609,201.995,153.609,197.284z"
+								id="path3"
+							></path>
+						</g>
+					</g>
+				</g>
+			</svg>
+		}
+	</div>
+}
+
+func EvilInputIdTr(id string) string {
+	return fmt.Sprintf("EvilTr-%s", id)
+}

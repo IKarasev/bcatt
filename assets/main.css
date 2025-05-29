@@ -1,0 +1,136 @@
+main {
+    height: 98vh;
+    width: 98vw;
+}
+
+.idx-grid {
+    display: grid;
+    height: 100%;
+    grid-template-columns: max(300px, 20vw) auto;
+    grid-template-rows: min-content auto 200px;
+    grid-column-gap: 2px;
+    grid-row-gap: 2px;
+    grid-template-areas:
+        "controls blocks"
+        "nodes blocks"
+        "nodes log";
+}
+
+.idx-grid-controls {
+    grid-area: controls;
+}
+
+.idx-nodes-grid {
+    grid-area: nodes;
+}
+
+.idx-blocks-grid {
+    grid-area: blocks;
+}
+
+.idx-log-grid {
+    grid-area: log;
+}
+
+.rc-no-arrows::-webkit-outer-spin-button,
+.rc-no-arrows::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.rc-no-arrows {
+    appearance: unset;
+    -moz-appearance: textfield;
+}
+
+/* Tab menue */
+.rc-tab-block input.rc-tab-radio[type="radio"]:checked+label {
+    background-color: rgb(229 231 235);
+}
+
+.rc-tab-block #TabEvil:checked+label {
+    background-color: rgb(252 165 165);
+    color: #FFF;
+    border-color: rgb(252 165 165);
+}
+
+.rc-tab-block:has(#TabBlocks:checked) #TabContentBlocks {
+    display: block;
+}
+
+.rc-tab-block:has(#TabWallet:checked) #TabContentWallets {
+    display: block;
+}
+
+.rc-tab-block:has(#TabSettings:checked) #TabContentSettings {
+    display: block;
+}
+
+.rc-tab-block:has(#TabEvil:checked) #TabContentEvil {
+    display: block;
+}
+
+.rc-tab-block:has(#TabVisual:checked) #TabContentVisual {
+    display: block;
+}
+
+/* animations */
+
+@keyframes hideElement {
+    0% {
+        opacity: 1;
+        /* Fully visible */
+    }
+
+    65% {
+        opacity: 1;
+        /* Fully transparent */
+    }
+
+    100% {
+        opacity: 0;
+        /* Fully transparent */
+    }
+}
+
+/* Style for the div */
+.rc-fade-out {
+    animation: hideElement 2s forwards;
+}
+
+/* Vertical tab menues */
+
+.rc-verical-tab-label {
+    writing-mode: vertical-lr;
+    text-orientation: upright;
+}
+
+/* Node tab vert tabs*/
+.rc-vertical-tabs-container:has(#tabNodeBlocks:checked) #tabContentNodeBlocks {
+    display: block;
+}
+
+.rc-vertical-tabs-container:has(#tabNodeUtxo:checked) #tabContentNodeUtxo {
+    display: block;
+}
+
+/* Wallets */
+.rc-wallet-item:has(.rc-wallet-radio:checked) {
+    background-color: rgb(191 219 254);
+    border-color: rgb(147 197 253);
+}
+
+/* wallet tabs */
+
+.rc-tab-block:has(#TabWalletSend:checked) #TabContentWalletSend {
+    display: block;
+}
+
+.rc-tab-block:has(#TabWalletTransactions:checked) #TabContentWalletTransactions {
+    display: block;
+}
+
+/* wallet transaction */
+#WalletTransactionResutl:has(input[type="checkbox"]:checked) .rc-wallet-tr-result-msg {
+    display: none;
+}

@@ -1,0 +1,26 @@
+web:
+  address: "127.0.0.1"    # ip address for webserver
+  port: 8080              # port for webserver
+  rss_update_time: 100    # time period for rss queue update in miliseconds
+
+emulator:
+  op_pause: 1             # pause in miliseconds between operations
+  with_log: true          # print log in console
+  start_utxo:             # settings for starting utxo list generation
+    active: true          # use start utxo generation
+    all: true             # generate utxos for all wallets
+    wallets:              # if all=false, use utxo generation only for these wallets
+      - "Node1"
+      - "User1"
+    nmin: 5               # min number of utxos per wallet to generate
+    nmax: 10               # max number of utxos to generate
+    vmin: 5               # min amount per each generated utxo
+    vmax: 10              # max amount per each generated utxo
+
+blockchain:
+  nodes: 5                # number of nodes (each node also has wallet)
+  wallets: 10              # number of extra wallets
+  coinbase_start: 1000000 # coinbase starting amount
+  reward: 5               # reward for mining
+  mining_diff: "20"       # mining difficulty, bigger - more difficult
+  nonce_max: 2147483647   # max nonce value to limit mining time, 0 - no limit

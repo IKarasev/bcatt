@@ -1,0 +1,38 @@
+package views
+
+import (
+	"github.com/IKarasev/bcatt/internal/globals"
+)
+
+templ LogRow(t int, s string) {
+	switch t {
+		case globals.LOG_LVL_INFO:
+			<p class="text-gray-700">
+				<span class="badge badge-xs bg-base-300 gap-1">INF</span>&nbsp;
+				<span>{ s }</span>
+			</p>
+		case globals.LOG_LVL_ERROR:
+			<p class="text-red-700">
+				<span class="badge badge-xs badge-error gap-1">ERR</span>&nbsp;
+				<span>{ s }</span>
+			</p>
+		case globals.LOG_LVL_OK:
+			<p class="text-green-700">
+				<span class="badge badge-xs badge-success gap-1">OKK</span>&nbsp;
+				<span>{ s }</span>
+			</p>
+		case globals.LOG_LVL_EVIL:
+			<p class="text-orange-500">
+				<span class="badge badge-xs badge-warning gap-1">EVL</span>&nbsp;
+				<span>{ s }</span>
+			</p>
+	}
+}
+
+templ NodeMode(b bool) {
+	if b {
+		<span class="badge badge-sm badge-success">MINER</span>
+	} else {
+		<span class="badge badge-sm badge-neutral">NODE</span>
+	}
+}

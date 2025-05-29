@@ -1,0 +1,58 @@
+package views
+
+import "fmt"
+import "github.com/IKarasev/bcatt/internal/globals"
+
+templ TabVisualBody(graphAttr templ.Attributes, forkAttr templ.Attributes) {
+	<div class="flex flex-col w-full h-full bg-gray-100 overflow-y-scroll">
+		<div class="flex flex-row ps-8 pt-2">
+			<span class="font-sans font-medium text-lg text-black">Карта сети</span>
+		</div>
+		<div class="flex flex-row w-full">
+			<div
+				id="graph"
+				class="flex flex-row w-full h-[600px] py-2"
+				{ graphAttr... }
+			></div>
+			<div id="latency-legend">
+				<h4>Connection Latency (ms)</h4>
+				<svg width="200" height="20">
+					<linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+						<stop offset="0%" stop-color="#2ca02c"></stop>
+						<stop offset="50%" stop-color="#ffd700"></stop>
+						<stop offset="100%" stop-color="#d62728"></stop>
+					</linearGradient>
+					<rect width="200" height="20" fill="url(#gradient)"></rect>
+					<text x="0" y="35">0</text>
+					<text x="90" y="35">100</text>
+					<text x="180" y="35">200+</text>
+				</svg>
+			</div>
+		</div>
+		<hr class="border-slate-300"/>
+		<div class="flex flex-row ps-8 pt-2">
+			<span class="font-sans font-medium text-lg text-black">Цепочка и ответвления блоков</span>
+		</div>
+		<div class="flex flex-row w-full py-2">
+			<div
+				id="chainfork"
+				{ forkAttr... }
+			></div>
+		</div>
+	</div>
+	<script src="/static/visual.js"></script>
+	<!--<script src="/static/fork.js"></script>-->
+}
+
+templ TabVisual() {
+	@TabVisualBody(
+		templ.Attributes{
+			"hx-trigger": fmt.Sprintf("sse:%s", globals.RSS_NET_UPDATE),
+			fmt.Sprintf("hx-on:sse:%s", globals.RSS_NET_UPDATE): "updateGraph(event.detail)",
+		},
+		templ.Attributes{
+			"hx-trigger": fmt.Sprintf("sse:%s", globals.RSS_FORK_UPDATE),
+			fmt.Sprintf("hx-on:sse:%s", globals.RSS_FORK_UPDATE): "forkUpdate(event.detail)",
+		},
+	)
+}

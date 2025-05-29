@@ -1,0 +1,44 @@
+#graph .node text {
+    font-size: 10px;
+    font-family: sans-serif;
+}
+
+#graph .link {
+    stroke-opacity: 0.6;
+}
+
+#graph .node circle {
+    stroke-width: 1.5px;
+}
+
+#graph .node.attacked circle {
+    stroke: #A00;
+}
+
+#graph .miner {
+    fill: #d49800;
+}
+
+#graph .regular {
+    fill: #3a994a;
+}
+
+#graph .user {
+    fill: #4797ff;
+}
+
+#latency-legend {
+    position: relative;
+    top: 20px;
+    right: 20px;
+    height: 80px;
+    background: white;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+#chainfork {
+    display: block;
+    width: 100%;
+    height: 600px;
+}

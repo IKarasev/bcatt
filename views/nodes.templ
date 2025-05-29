@@ -1,0 +1,381 @@
+package views
+
+import (
+	"strconv"
+	"fmt"
+
+	"github.com/IKarasev/bcatt/internal/globals"
+)
+
+templ NodeCell(n NodeCellInput) {
+	<div class="flex-auto w-100 rounded bg-neutral-900 my-2 p-2">
+		<div class="flex justify-between py-1">
+			<span
+				class="font-bold text-neutral-200 cursor-pointer"
+				hx-get="/setminer"
+				hx-include={ fmt.Sprintf("#nodeItem%s", n.Id) }
+				hx-swap="none"
+			>{ n.Name }</span>
+			<input
+				type="hidden"
+				name="nodeid"
+				id={ fmt.Sprintf("nodeItem%s", n.Id) }
+				value={ n.Id }
+			/>
+			<div sse-swap={ rssNodeLabel(n.Name, globals.RSS_EVENT_MINER_SET) } hx-swap="innerHTML">
+				if n.Miner {
+					<span class="badge badge-sm badge-success">MINER</span>
+				} else {
+					<span class="badge badge-sm badge-neutral">NODE</span>
+				}
+			</div>
+		</div>
+		<div class="overflow-x-auto">
+			<span class="font-mono text-sm text-neutral-400">{ n.Id }</span>
+		</div>
+		<div class="flex justify-between text-neutral-400">
+			<div>Coinbase</div>
+			<div
+				sse-swap={ rssNodeLabel(n.Name, globals.RSS_EVENT_NODE_COINBASE) }
+				hx-swap="innerHTML"
+			>{ n.Coinbase }</div>
+		</div>
+		<!-- Wallet -->
+		<div class="collapse collapse-arrow bg-neutral-800 text-neutral-400 rounded my-2">
+			<input type="checkbox"/>
+			<div class="collapse-title">Wallet</div>
+			<div class="collapse-content">
+				<div class="flex justify-between">
+					<div>Name</div>
+					<div>{ n.WName }</div>
+				</div>
+				<div class="flex justify-between">
+					<div>Coins</div>
+					<div
+						sse-swap={ rssNodeLabel(n.Name, globals.RSS_EVENT_WALLET_COINS) }
+						hx-swap="innerHTML"
+					>{ n.WCoins }</div>
+				</div>
+				<div>Address</div>
+				<p class="break-all font-sans font-thin">{ n.WAddress }</p>
+			</div>
+		</div>
+		<!-- Last block -->
+		<div class="collapse collapse-arrow bg-neutral-800 text-neutral-400 rounded">
+			<input type="checkbox"/>
+			<div class="collapse-title">Last block</div>
+			<div
+				sse-swap={ rssNodeLabel(n.Name, globals.RSS_EVENT_LASTBLOCK) }
+				hx-swap="innerHTML"
+				class="collapse-content"
+			>
+				<div class="flex justify-between">
+					<div>Height</div>
+					<div>{ n.BHeight }</div>
+				</div>
+				<div class="flex justify-between">
+					<div>Coinbase</div>
+					<div>{ n.BCoinbase }</div>
+				</div>
+				<div class="flex justify-between">
+					<div>Nonce</div>
+					<div>{ n.BNonce }</div>
+				</div>
+				<div>Hash</div>
+				<p class="break-all font-sans font-thin select-all">{ n.BHash }</p>
+				<div>Merkle Root</div>
+				<p class="break-all font-sans font-thin select-all">{ n.BRoot }</p>
+			</div>
+		</div>
+	</div>
+}
+
+templ NodeCellList(n []NodeCellInput) {
+	for _,i := range n {
+		@NodeCell(i)
+	}
+}
+
+templ BlockInfoSmall(b BlockInfoSmallItem) {
+	<div class="flex justify-between">
+		<div>Height</div>
+		<div>{ b.Height }</div>
+	</div>
+	<div class="flex justify-between">
+		<div>Coinbase</div>
+		<div>{ b.Coinbase }</div>
+	</div>
+	<div class="flex justify-between">
+		<div>Nonce</div>
+		<div>{ b.Nonce }</div>
+	</div>
+	<div>Hash</div>
+	<p class="break-all font-sans font-thin">{ b.Hash }</p>
+	<div>Merkle Root</div>
+	<p class="break-all font-sans font-thin">{ b.Root }</p>
+}
+
+templ NodeSelectList(nl []SelectListItem) {
+	<option disabled selected>Выберите ноду</option>
+	for _, n := range nl {
+		<option value={ n.Id }>{ n.Name }</option>
+	}
+}
+
+templ NodeInfoFull(n NodeInfoSm, bl []BlockInfoSmallItem, ul []UtxoItem) {
+	@NodeInfoDetailed(n)
+	<div class="flex flex-row w-full h-full rc-vertical-tabs-container">
+		<div class="flex flex-col w-6 h-full border-r rc-vertical-tabs">
+			<div class="flex text-black">
+				<input type="radio" name="tabNodeLeftRadio" id="tabNodeBlocks" checked class="hidden rc-tab-radio"/>
+				<label for="tabNodeBlocks" class="cursor-pointer border hover:border-blue-500 hover:text-blue-500 rounded-l-md py-2 rc-verical-tab-label">
+					Blocks
+				</label>
+			</div>
+			<div class="flex">
+				<input type="radio" name="tabNodeLeftRadio" id="tabNodeUtxo" class="hidden rc-tab-radio"/>
+				<label for="tabNodeUtxo" class="cursor-pointer border hover:border-blue-500 hover:text-blue-500 rounded-l-md py-2 rc-verical-tab-label">
+					Utxo
+				</label>
+			</div>
+		</div>
+		<div class="flex flex-col w-full h-full bg-gray-50">
+			<div class="tb-contents w-full h-full">
+				<div id="tabContentNodeBlocks" class="relative w-full h-full px-2 hidden">
+					@NodeBlocksTable(n.Id, bl)
+				</div>
+				<div id="tabContentNodeUtxo" class="relative w-full h-full px-2 hidden">
+					@NodeUtxoTable(ul)
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+templ NodeInfoDetailed(n NodeInfoSm) {
+	<div class="flex flex-row w-full justify-center pt-4 pb-2">
+		<div class="flex flex-row gap-8">
+			<div class="flex flex-col pr-2">
+				<span class="font-bold text-xl">{ n.Name }</span>
+				if n.Miner {
+					<span class="badge badge-sm badge-success">MINER</span>
+				} else {
+					<span class="badge badge-sm badge-secondary">NODE</span>
+				}
+			</div>
+			<div class="flex flex-row gap-2">
+				<div class="flex flex-col font-semibold">
+					<span>Адрес</span>
+					<span>Текущий Coinbase Utxo</span>
+				</div>
+				<div class="flex flex-col text-end">
+					<span>{ n.Id }</span>
+					<span>{ n.Coinbase }</span>
+				</div>
+			</div>
+			<div class="flex flex-col">
+				<div class="flex flex-row gap-2">
+					<div class="flex flex-col font-semibold">
+						<span>Всего Utxo</span>
+						<span>Всего блоков</span>
+					</div>
+					<div class="flex flex-col">
+						<span>{ n.TotalUtxo }</span>
+						<span>{ n.TotalBlocks }</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+templ NodeBlocksTable(n string, bl []BlockInfoSmallItem) {
+	<input type="hidden" id="BlocksTableNodeName" name="node" value={ n }/>
+	<div class="flex flex-row gap-4 justify-center w-full pt-4 pb-20 h-full">
+		<div class="flex flex-auto h-full">
+			<div class="block w-full pb-4 overflow-y-scroll">
+				<table class="table">
+					<thead>
+						<tr>
+							<th>Height</th>
+							<th>Hash</th>
+							<th>Time</th>
+							<th>Transactions</th>
+							<th>Nonce</th>
+							<th>Coinbase</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, b := range bl {
+							<tr class="hover">
+								<td>{ b.Height }</td>
+								<td class="break-all text-xs font-mono font-thin select-all">
+									{ b.Hash }
+								</td>
+								<td>{ b.Time }</td>
+								<td>{ b.TotalTr }</td>
+								<td>{ b.Nonce }</td>
+								<td>{ b.Coinbase }</td>
+								<td>
+									<form>
+										<button
+											hx-post="/node/block"
+											hx-target="#NodeBlockDetails"
+											hx-swap="innerHTML"
+											hx-include="#BlocksTableNodeName"
+											hx-trigger="click"
+											class="btn btn-sm"
+										>i</button>
+										<input type="hidden" name="block" value={ b.Height }/>
+									</form>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div id="NodeBlockDetails" class="flex h-full max-w-md"></div>
+	</div>
+}
+
+templ NodeBLocksBlockDetailed(n string, b BlockInfoSmallItem) {
+	<div class="block h-full w-full overflow-y-auto pb-40">
+		<input type="hidden" id="NodeBlockInfoNodeName" name="node" value={ n } class="hidden"/>
+		<div class="divider">HEADER</div>
+		<table class="table table-auto table-sm">
+			<tbody>
+				<tr>
+					<td>Height</td>
+					<td class="text-end">{ b.Height }</td>
+				</tr>
+				<tr>
+					<td>Time</td>
+					<td class="text-end">{ b.Time }</td>
+				</tr>
+				<tr>
+					<td>Root</td>
+					<td class="break-all text-xs text-end font-mono font-thin select-all">{ b.Root }</td>
+				</tr>
+				<tr>
+					<td>Prev</td>
+					<td class="break-all text-xs text-end font-mono font-thin select-all">{ b.Prev }</td>
+				</tr>
+				<tr>
+					<td>Nonce</td>
+					<td class="text-end">{ b.Nonce }</td>
+				</tr>
+				<tr>
+					<td>Hash</td>
+					<td class="break-all text-xs text-end font-mono font-thin select-all">{ b.Hash }</td>
+				</tr>
+			</tbody>
+		</table>
+		<div class="divider">BODY</div>
+		<div class="flex justify-between">
+			<span>Coinbase</span>
+			<span>{ b.Coinbase }</span>
+		</div>
+		<div class="flex justify-between">
+			<span>Total TR</span>
+			<span>{ b.TotalTr }</span>
+		</div>
+		<div class="divider">Transactions</div>
+		<div class="flex flex-col pb-2 w-full gap-2 justify-center">
+			<form id="BlockInfoTrList" class="w-full">
+				<button
+					hx-post="/node/block/tr"
+					hx-trigger="click"
+					hx-target="#BlockInfoTrList"
+					hx-swap="outerHTML"
+					hx-include="#NodeBlockInfoNodeName"
+					class="btn btn-xs btn-outline btn-secondary w-full"
+				>Load transactions</button>
+				<input type="hidden" name="block" value={ b.Height } class="hidden"/>
+			</form>
+		</div>
+	</div>
+}
+
+templ NodeBlockTransactions(trs []BlockTransactionItem) {
+	for _,t := range trs {
+		<div class="flex flex-col w-md border-2 border-zinc-300 rounded">
+			<table class="table table-auto table-sm">
+				<tbody>
+					<tr>
+						<td>Sign</td>
+						<td class="text-xs font-mono font-thin select-all">
+							<div class="flex w-72 px-2 overflow-x-auto">
+								{ t.Sign }
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td>Pk</td>
+						<td class="text-xs font-mono font-thin select-all">
+							<div class="flex w-72 px-2 overflow-x-auto">
+								{ t.Pk }
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<table class="table table-auto table-xs">
+				<thead>
+					<tr>
+						<th colspan="2">Input Utxo</th>
+					</tr>
+				</thead>
+				<tbody>
+					for _, u := range t.InputUtxo {
+						<tr>
+							<td>{ u.Amount }</td>
+							<td class="break-all text-xs text-start font-mono font-thin select-all">{ u.Addr }</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+			<table class="table table-auto table-xs">
+				<thead>
+					<tr>
+						<th colspan="2">Output Utxo</th>
+					</tr>
+				</thead>
+				<tbody>
+					for _, u := range t.OutputUtxo {
+						<tr>
+							<td>{ u.Amount }</td>
+							<td class="break-all text-xs text-start font-mono font-thin select-all">{ u.Addr }</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+}
+
+templ NodeUtxoTable(ul []UtxoItem) {
+	<div class="block w-full h-full overflow-y-auto">
+		<table class="table table-auto">
+			<thead>
+				<tr>
+					<th>#</th>
+					<th>Amount</th>
+					<th>Address</th>
+				</tr>
+			</thead>
+			<tbody>
+				for i,u := range ul {
+					<tr>
+						<td>{ strconv.Itoa(i) }</td>
+						<td>{ u.Amount }</td>
+						<td class="font-mono select-all break-all">
+							{ u.Addr }
+						</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+}

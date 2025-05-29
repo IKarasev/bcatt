@@ -1,0 +1,200 @@
+package views
+
+import "github.com/IKarasev/bcatt/internal/globals"
+
+templ Index(tk string) {
+	@HtmlBase() {
+		<div
+			hx-ext="sse"
+			sse-connect="/sse"
+			class="idx-grid bg-gray-50"
+		>
+			<div class="idx-grid-controls bg-gray-50">
+				<div class="flex flex-col justify-items-center p-2">
+					<div class="join w-100 p-2 border-black">
+						<span class="join-item border border-base-200 w-1/3 text-center font-semibold bg-gray-600 text-gray-100">Такт</span>
+						<span
+							sse-swap={ globals.RSS_EVENT_TICK }
+							class="font-semibold join-item border border-base-200 w-2/3 text-center text-black"
+						>{ tk }</span>
+						<button
+							hx-get="/tick"
+							hx-trigger="click"
+							hx-swap="none"
+							class="btn btn-sm btn-primary w-1/3 join-item"
+						>
+							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M19 6V18M5 18L5 6L15 12L5 18Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+							</svg>
+						</button>
+					</div>
+					<div class="flex flex-row justify-center gap-4">
+						<button
+							hx-get="/selectminer"
+							hx-trigger="click"
+							hx-swap="none"
+							class="btn btn-sm btn-outline btn-success w-1/4"
+						>Miner</button>
+						<button
+							hx-get="/nodelist"
+							hx-trigger="click"
+							hx-target="#rc-node-list-wrapper"
+							hx-swap="innerHTML"
+							class="btn btn-sm btn-outline btn-neutral w-1/4"
+						>&#10227;</button>
+					</div>
+				</div>
+			</div>
+			<div class="idx-nodes-grid overflow-y-scroll bg-gray-50">
+				<div
+					id="rc-node-list-wrapper"
+					hx-get="/nodelist"
+					hx-trigger="load"
+					class="flex-auto flex-col justify-center w-100 p-1"
+				></div>
+			</div>
+			<div class="idx-blocks-grid px-2 pt-4 pb-1 w-full">
+				@TabsWindow()
+			</div>
+			<div class="idx-log-grid p-2">
+				@LogWindow()
+			</div>
+		</div>
+	}
+}
+
+templ TabsWindow() {
+	<div class="w-full h-full overflow-hidden bg-gray-50 rc-tab-block">
+		<!-- Tabs Header -->
+		<div class="flex border-b border-gray-200">
+			<!-- Tab Labels -->
+			<input type="radio" name="tabs" id="TabBlocks" class="hidden rc-tab-radio" checked/>
+			<label for="TabBlocks" class="flex-1 text-center cursor-pointer text-gray-600 hover:text-blue-500 border-b-2 rounded-t-md border-transparent hover:border-blue-500">
+				Блоки
+			</label>
+			<input type="radio" name="tabs" id="TabWallet" class="hidden rc-tab-radio"/>
+			<label for="TabWallet" class="flex-1 text-center cursor-pointer text-gray-600 hover:text-blue-500 border-b-2 rounded-t-md border-transparent hover:border-blue-500">
+				Кошелек
+			</label>
+			<input type="radio" name="tabs" id="TabEvil" class="hidden rc-tab-radio"/>
+			<label for="TabEvil" class="flex-1 bg-red-50 text-center cursor-pointer text-red-600 hover:text-red-800 border-b-2 rounded-t-md border-transparent hover:border-red-800">
+				Злодей
+			</label>
+			<input type="radio" name="tabs" id="TabVisual" class="hidden rc-tab-radio"/>
+			<label for="TabVisual" class="flex-1 text-center cursor-pointer text-gray-600 hover:text-blue-500 border-b-2 rounded-t-md border-transparent hover:border-blue-500">
+				Визуализация
+			</label>
+			<input type="radio" name="tabs" id="TabSettings" class="hidden rc-tab-radio"/>
+			<label for="TabSettings" class="flex-1 text-center cursor-pointer text-gray-600 hover:text-blue-500 border-b-2 rounded-t-md border-transparent hover:border-blue-500">
+				Настройки
+			</label>
+		</div>
+		<div class="rc-tab-content relative h-full border-l border-gray-200">
+			<!-- Блоки  -->
+			<div class="absolute inset-0 px-4 pt-4 pb-1 hidden" id="TabContentBlocks">
+				@TabBlocks()
+			</div>
+			<!-- Кошельки -->
+			<div class="absolute inset-0 pb-1 hidden" id="TabContentWallets">
+				@TabWallet()
+			</div>
+			<div class="absolute inset-0 pb-8 hidden" id="TabContentEvil">
+				@TabEvil()
+			</div>
+			<!-- Настройки -->
+			<div
+				id="TabContentSettings"
+				hx-get="/settings"
+				hx-trigger="load"
+				class="absolute inset-0 overflow-y-auto p-4 hidden"
+			></div>
+			<!-- Визуализация -->
+			<div class="absolute inset-0 pb-8 hidden w-full" id="TabContentVisual">
+				@TabVisual()
+			</div>
+		</div>
+	</div>
+}
+
+templ LogWindow() {
+	<div class="w-full h-full flex flex-col bg-gray-100 border border-gray-300">
+		<!-- Header Row -->
+		<div class="bg-gray-700 text-md text-gray-50 px-4 font-bold">
+			Emulation log
+		</div>
+		<!-- Scrollable Log Window -->
+		<div
+			id="rc-log-list"
+			sse-swap={ globals.RSS_LOG_EVENT }
+			hx-swap="afterbegin"
+			class="flex-1 overflow-y-auto p-2 bg-gray-50 border-2"
+		></div>
+	</div>
+}
+
+templ EmulationSettings(s EmulationSettingsItem) {
+	<h1 class="font-sans text-xl text-black pb-4">
+		Настройки эмуляции
+	</h1>
+	<table class="table-auto table-lg w-fit border-none font-sans text-black text-left">
+		<tbody>
+			<tr>
+				<th>Количество нод</th>
+				<td>{ s.NodeNum }</td>
+			</tr>
+			<tr>
+				<th>Количество кошельков</th>
+				<td>{ s.WalletNum }</td>
+			</tr>
+			<tr>
+				<th>Начальный Coinbase</th>
+				<td>{ s.CoinbaseStart }</td>
+			</tr>
+			<tr>
+				<th>Награда майнинга</th>
+				<td>{ s.RewardAmount }</td>
+			</tr>
+			<tr>
+				<th>DIFF</th>
+				<td>{ s.Diff }</td>
+			</tr>
+			<tr>
+				<th>Задержка опреаций</th>
+				<td>{ s.OpPause } мс</td>
+			</tr>
+		</tbody>
+	</table>
+}
+
+templ TabBlocks() {
+	<div class="flex flex-row w-full h-full">
+		<div class="flex flex-col w-full h-full">
+			<form
+				hx-post="/node/info"
+				hx-target="#NodeInfoBlock"
+				hx-swap="innerHTML"
+				class="justify-center join"
+			>
+				<select
+					name="nodeId"
+					hx-get="/node/slist"
+					hx-trigger="load"
+					hx-target="#RcNodesListSelect"
+					id="RcNodesListSelect"
+					class="select select-bordered join-item w-80"
+				></select>
+				<button class="btn join-item" type="submit">
+					<svg class="feather feather-search" fill="none" height="20" width="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+				</button>
+			</form>
+			<div id="NodeInfoBlock" class="flex flex-col w-full h-5/6"></div>
+		</div>
+	</div>
+}
+
+templ ItemNotFound(item, details string) {
+	<div class="block bg-red-50 rounded-md p-4 text-red-600">
+		<p>Объект { item } не найден</p>
+		<p>{ details }</p>
+	</div>
+}
