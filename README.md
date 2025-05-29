@@ -103,3 +103,5 @@ go run ./cmd/main.go
 ```
 По умлочанию web-интерфейс будет доступен на
 http://127.0.0.1:8080
+
+Или же скачайте уже собранный исполняемый файл для вашей ОС из https://github.com/IKarasev/bcatt/releases/tag/FirstRelease
