@@ -1,5 +1,5 @@
 
-# BCATT - Prototype System for Simulation and Visualization of Attacks on Blockchain Systems
+# <img src="https://github.com/IKarasev/bcatt/releases/download/Images/logo320.png" alt="" width="35"/> BCATT - Prototype System for Simulation and Visualization of Attacks on Blockchain Systems
 
 ## Description
 
@@ -109,3 +109,26 @@ http://127.0.0.1:8080
 
 Alternatively, download a precompiled executable for your OS from:  
 https://github.com/IKarasev/bcatt/releases/tag/FirstRelease
+
+## UI
+
+### Start screen
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/start_screen.png) 
+
+### Tab "Блоки"
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/blocks_1.png)
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/blocks_2.png)
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/blocks_3.png)
+
+### Tab "Кошелек"
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/wallet_1.png) 
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/wallet_2.png) 
+
+### Tab "Злодей"
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/evil_1.png) 
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/evil_2.png) 
+
+### Visualizations
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/visual_2.png)
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/fork_3.png) 
+

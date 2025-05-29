@@ -1,4 +1,4 @@
-# BCATT - прототип системы симуляции и визуализации атак на блокчейн-системы
+# <img src="https://github.com/IKarasev/bcatt/releases/download/Images/logo320.png" alt="" width="35"/> BCATT - прототип системы симуляции и визуализации атак на блокчейн-системы
 
 ## Описание
 
@@ -105,3 +105,26 @@ go run ./cmd/main.go
 http://127.0.0.1:8080
 
 Или же скачайте уже собранный исполняемый файл для вашей ОС из https://github.com/IKarasev/bcatt/releases/tag/FirstRelease
+
+## UI
+
+### Начальный экран
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/start_screen.png) 
+
+### Закладка "Блоки"
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/blocks_1.png)
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/blocks_2.png)
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/blocks_3.png)
+
+### Закладка "Кошелек"
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/wallet_1.png) 
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/wallet_2.png) 
+
+### Закладка "Злодей"
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/evil_1.png) 
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/evil_2.png) 
+
+### Визуализации
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/visual_2.png)
+![alt text](https://github.com/IKarasev/bcatt/releases/download/Images/fork_3.png) 
+
